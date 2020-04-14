@@ -1,0 +1,11 @@
+[package]
+name = "runge_kutta"
+version = "0.1.0"
+authors = ["bababax11 <bababax11@example.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ndarray = "0.13.0"
+gnuplot = "0.0.34"
