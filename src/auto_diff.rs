@@ -76,6 +76,7 @@ impl Dual {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use assert_approx_eq::assert_approx_eq;
 
     #[test]
     fn test_x2_add_x() {
@@ -85,7 +86,6 @@ mod tests {
         let x = Dual { var: 2.0, eps: 1.0 };
         assert_eq!(x2_add_x(x), Dual { var: 6.0, eps: 5.0 });
     }
-
     #[test]
     fn test_x3_add_ax() {
         let x = Dual { var: 2.0, eps: 1.0 };
@@ -99,13 +99,11 @@ mod tests {
             }
         );
     }
-
     #[test]
     fn test_sin() {
         let x = Dual { var: 0.0, eps: 1.0 };
         assert_eq!(x.sin(), Dual { var: 0.0, eps: 1.0 });
     }
-
     #[test]
     fn test_sin_exp() {
         fn sin_x_add_xe_x(x: Dual) -> Dual {
@@ -113,5 +111,16 @@ mod tests {
         }
         let x = Dual { var: 0.0, eps: 1.0 };
         assert_eq!(sin_x_add_xe_x(x), Dual { var: 0.0, eps: 2.0 });
+    }
+    #[test]
+    fn test_multivar() {
+        fn sin_y_add_xy_add_y_e_x(x: Dual, y: Dual) -> Dual {
+            y.sin() + x * y + y * x.exp()
+        }
+        let x = Dual { var: 0.0, eps: 1.0 };
+        let y = Dual { var: 2.0, eps: 0.0 };
+        let z = sin_y_add_xy_add_y_e_x(x, y);
+        assert_approx_eq!(z.var, 2.9092975, 1e-7);
+        assert_eq!(z.eps, 4.0);
     }
 }
