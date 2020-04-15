@@ -3,7 +3,7 @@ use std::ops::{Add, Div, Mul, Sub};
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Dual {
     var: f64,
-    eps: f64,
+    pub eps: f64,
 }
 
 impl Add for Dual {
@@ -38,6 +38,16 @@ impl Mul for Dual {
     }
 }
 
+impl Mul<Dual> for f64 {
+    type Output = Dual;
+    fn mul(self, r: Dual) -> Dual {
+        Dual {
+            var: self * r.var,
+            eps: self * r.eps,
+        }
+    }
+}
+
 impl Div for Dual {
     type Output = Dual;
     fn div(self, r: Dual) -> Dual {
@@ -50,22 +60,35 @@ impl Div for Dual {
     }
 }
 
+impl Div<f64> for Dual {
+    type Output = Dual;
+    fn div(self, r: f64) -> Dual {
+        Dual {
+            var: self.var / r,
+            eps: self.eps / r,
+        }
+    }
+}
+
 impl Dual {
-    fn sin(&self) -> Dual {
+    pub fn new(var: f64, eps: f64) -> Self {
+        Self { var: var, eps: eps}
+    }
+    pub fn sin(&self) -> Dual {
         Dual {
             var: self.var.sin(),
             eps: self.eps * self.var.cos(),
         }
     }
 
-    fn cos(&self) -> Dual {
+    pub fn cos(&self) -> Dual {
         Dual {
             var: self.var.cos(),
             eps: -self.eps * self.var.sin(),
         }
     }
 
-    fn exp(&self) -> Dual {
+    pub fn exp(&self) -> Dual {
         Dual {
             var: self.var.exp(),
             eps: self.eps * self.var.exp(),

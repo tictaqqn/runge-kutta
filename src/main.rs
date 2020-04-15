@@ -1,27 +1,78 @@
 use gnuplot::{Caption, Color, Figure};
 extern crate nalgebra as na;
+use runge_kutta::auto_diff::Dual;
+use runge_kutta::nabla::Func3D;
 
+// fox and rabbit
 const A: f64 = 0.01;
 const B: f64 = 0.05;
 const C: f64 = 0.0001;
 const X0: f64 = 1000.0;
 const Y0: f64 = 100.0;
 const DELTA_T: f64 = 0.001;
-type NDim = na::U2;
+const MAX_ITER: usize = 500000;
+// type NDim = na::U2;
+// type VN = na::VectorN<f64, NDim>;
+
+// fn time_evol(x: &VN) -> VN {
+//     VN::new(A * x[0] - C * x[0] * x[1], -B * x[1] + C * x[0] * x[1])
+// }
+
+// birds swarms
+const GAMMA: f64 = 0.01;
+const VV0: f64 = 1.0;
+const A1: f64 = 1.0;
+const A2: f64 = 0.8;
+const AV: f64 = 1.0;
+const RR1: f64 = 1.0;
+const RR2: f64 = 2.0;
+const RRV: f64 = 1.0;
+type NDim = na::U40;
+type NDimX = na::U20;
+const N_DIM: usize = 40;
+const N_DIMX: usize = N_DIM / 2;
+const N_BIRD: usize = N_DIMX / 2;
+type VN = na::VectorN<f64, NDim>;
+type V2 = na::Vector2<f64>;
+
+fn dist_potential(x: na::Vector2<Dual>) -> Dual {
+    let z = x[0] * x[0] + x[1] * x[1];
+    A1 * (z / RR1).exp() - A2 * (z / RR2).exp()
+}
+fn dist_reg(x: V2) -> V2 {
+    let f = Func3D::new(dist_potential);
+    -f.nabla(x)
+}
+fn align_velocity(x: V2, v: V2) -> V2 {
+    v * AV * (x.norm_squared() / RRV)
+}
+fn time_evol(xv: &VN) -> VN {
+    let mut dx = VN::zeros();
+    dx.fixed_rows_mut::<NDimX>(0)
+        .copy_from(&xv.fixed_rows::<NDimX>(N_DIMX));
+    for i in 0..N_BIRD {
+        let x = xv.fixed_rows::<na::U2>(2 * i);
+        let v = xv.fixed_rows::<na::U2>(N_DIMX + 2 * i);
+        let mut f = GAMMA * (VV0 - v.norm_squared()) * v;
+        for j in (i + 1)..N_BIRD {
+            let xx = xv.fixed_rows::<na::U2>(2 * j) - x;
+            let vv = xv.fixed_rows::<na::U2>(N_DIMX + 2 * j) - v;
+            f += dist_reg(xx) + align_velocity(xx, vv);
+        }
+        dx.fixed_rows_mut::<na::U2>(N_DIMX).copy_from(&f);
+    }
+    dx
+}
 
 fn main() {
-    let mut x = na::RowVectorN::<_, NDim>::new(X0, Y0);
+    let mut x = VN::new_random(); // new(X0, Y0);
     let mut xs = vec![];
     let mut ys = vec![];
     let mut ts = vec![];
 
-    for i in 1..500000 {
+    for i in 1..MAX_ITER {
         let t = (i as f64) * DELTA_T;
-        let dx = runge_kutta(&x, |x| {
-            na::RowVectorN::<_, NDim>::new(
-                A * x[0] - C * x[0] * x[1], 
-                -B * x[1] + C * x[0] * x[1])
-        });
+        let dx = runge_kutta(&x, time_evol);
         x += dx;
         ts.push(t);
         xs.push(x[0]);
@@ -30,9 +81,9 @@ fn main() {
     plot(&xs, &ys);
 }
 
-fn runge_kutta<F>(x: &na::RowVectorN<f64, NDim>, f: F) -> na::RowVectorN<f64, NDim>
+fn runge_kutta<F>(x: &VN, f: F) -> VN
 where
-    F: Fn(&na::RowVectorN<f64, NDim>) -> na::RowVectorN<f64, NDim>,
+    F: Fn(&VN) -> VN,
 {
     let k1 = f(x) * DELTA_T;
     let df = |x| f(&x) * DELTA_T;
