@@ -29,35 +29,42 @@ const RR2: f64 = 2.0;
 const RRV: f64 = 1.0;
 type NDim = na::U40;
 type NDimX = na::U20;
+type NDimBird = na::U10;
 const N_DIM: usize = 40;
 const N_DIMX: usize = N_DIM / 2;
 const N_BIRD: usize = N_DIMX / 2;
 type VN = na::VectorN<f64, NDim>;
 type V2 = na::Vector2<f64>;
 
-fn dist_potential(x: na::Vector2<Dual>) -> Dual {
+fn dist_potential(x: &na::Vector2<Dual>) -> Dual {
     let z = x[0] * x[0] + x[1] * x[1];
-    A1 * (z / RR1).exp() - A2 * (z / RR2).exp()
+    A1 * (z / -RR1).exp() - A2 * (z / -RR2).exp()
 }
-fn dist_reg(x: V2) -> V2 {
+fn dist_reg(x: &V2) -> V2 {
     let f = Func3D::new(dist_potential);
     -f.nabla(x)
 }
-fn align_velocity(x: V2, v: V2) -> V2 {
+fn align_velocity(x: &V2, v: &V2) -> V2 {
     v * AV * (x.norm_squared() / RRV)
 }
 fn time_evol(xv: &VN) -> VN {
     let mut dx = VN::zeros();
     dx.fixed_rows_mut::<NDimX>(0)
         .copy_from(&xv.fixed_rows::<NDimX>(N_DIMX));
+    let mut tmp = na::MatrixMN::<na::Vector2<f64>, NDimBird, NDimBird>::zeros();
     for i in 0..N_BIRD {
         let x = xv.fixed_rows::<na::U2>(2 * i);
         let v = xv.fixed_rows::<na::U2>(N_DIMX + 2 * i);
         let mut f = GAMMA * (VV0 - v.norm_squared()) * v;
-        for j in (i + 1)..N_BIRD {
+        for j in 0..N_BIRD {
+            if i >= j {
+                f += tmp[(j, i)];
+                continue;
+            }
             let xx = xv.fixed_rows::<na::U2>(2 * j) - x;
             let vv = xv.fixed_rows::<na::U2>(N_DIMX + 2 * j) - v;
-            f += dist_reg(xx) + align_velocity(xx, vv);
+            tmp[(i, j)] = dist_reg(&xx) + align_velocity(&xx, &vv);
+            f += tmp[(i, j)];
         }
         dx.fixed_rows_mut::<na::U2>(N_DIMX).copy_from(&f);
     }
