@@ -1,4 +1,4 @@
-# Runge Kutta
+# Simulation on Birds Swarms
 
 Solving ODE with Runge-Kutta method and automatic differentiation.
 
