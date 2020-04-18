@@ -1,4 +1,4 @@
-# Runge Kutta
+# Simulation on Birds Swarms
 
 Solving ODE with Runge-Kutta method and automatic differentiation.
 
@@ -6,7 +6,7 @@ Solving ODE with Runge-Kutta method and automatic differentiation.
 
 Assume N birds flying in swarms. Let x be positon of i-th birds, and v0 be preferred speed. Newton's equation of each bird is
 
-<img src="https://latex.codecogs.com/gif.latex?\dot&space;v_i&space;=&space;\gamma&space;(v_0^2&space;-&space;{\dot&space;x_i}^2)&space;\dot&space;x_i&space;&plus;&space;\sum_{j&space;\neq&space;i&space;}&space;f(x_j&space;-&space;x_i)&space;&plus;&space;\sum_{j&space;\neq&space;i&space;}&space;g(x_j&space;-&space;x_i,&space;v_j&space;-&space;v_i)" title="\dot v_i = \gamma (v_0^2 - {\dot x_i}^2) \dot x_i + \sum_{j \neq i } f(x_j - x_i) + \sum_{j \neq i } g(x_j - x_i, v_j - v_i)" />
+<img src="https://latex.codecogs.com/gif.latex?\dot&space;v_i&space;=&space;\gamma&space;(v_0^2&space;-&space;v_i^2)&space;v_i&space;&plus;&space;\sum_{j&space;\neq&space;i&space;}&space;f(x_j&space;-&space;x_i)&space;&plus;&space;\sum_{j&space;\neq&space;i&space;}&space;g(x_j&space;-&space;x_i,&space;v_j&space;-&space;v_i)" title="\dot v_i = \gamma (v_0^2 - v_i^2) v_i + \sum_{j \neq i } f(x_j - x_i) + \sum_{j \neq i } g(x_j - x_i, v_j - v_i)" />
 
 where
 
