@@ -51,14 +51,22 @@ fn time_evol(xv: &VN) -> VN {
     let mut dx = VN::zeros();
     dx.fixed_rows_mut::<NDimX>(0)
         .copy_from(&xv.fixed_rows::<NDimX>(N_DIMX));
+    let mut tmp_dist = na::MatrixMN::<na::Vector2<f64>, NDimBird, NDimBird>::zeros();
+    let mut tmp_align = na::MatrixMN::<na::Vector2<f64>, NDimBird, NDimBird>::zeros();
     for i in 0..N_BIRD {
         let x = xv.fixed_rows::<na::U2>(2 * i);
         let v = xv.fixed_rows::<na::U2>(N_DIMX + 2 * i);
         let mut f = GAMMA * (VV0 - v.norm_squared()) * v;
         for j in 0..N_BIRD {
+            if i >= j {
+                f += tmp_dist[(j, i)] - tmp_align[(j, i)];
+                continue;
+            }
             let xx = xv.fixed_rows::<na::U2>(2 * j) - x;
             let vv = xv.fixed_rows::<na::U2>(N_DIMX + 2 * j) - v;
-            f += dist_reg(&xx) + align_velocity(&xx, &vv);
+            tmp_dist[(i, j)] = dist_reg(&xx);
+            tmp_align[(i, j)] = align_velocity(&xx, &vv);
+            f += tmp_dist[(i, j)] + tmp_align[(i, j)];
         }
         dx.fixed_rows_mut::<na::U2>(N_DIMX).copy_from(&f);
     }
