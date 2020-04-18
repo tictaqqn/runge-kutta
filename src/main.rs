@@ -4,11 +4,11 @@ use runge_kutta::auto_diff::Dual;
 use runge_kutta::nabla::Func3D;
 
 // fox and rabbit
-const A: f64 = 0.01;
-const B: f64 = 0.05;
-const C: f64 = 0.0001;
-const X0: f64 = 1000.0;
-const Y0: f64 = 100.0;
+// const A: f64 = 0.01;
+// const B: f64 = 0.05;
+// const C: f64 = 0.0001;
+// const X0: f64 = 1000.0;
+// const Y0: f64 = 100.0;
 const DELTA_T: f64 = 0.001;
 const MAX_ITER: usize = 500000;
 // type NDim = na::U2;
@@ -21,9 +21,9 @@ const MAX_ITER: usize = 500000;
 // birds swarms
 const GAMMA: f64 = 0.01;
 const VV0: f64 = 1.0;
-const A1: f64 = 1.0;
-const A2: f64 = 0.8;
-const AV: f64 = 1.0;
+const A1: f64 = 0.001;
+const A2: f64 = 0.0008;
+const AV: f64 = 0.001;
 const RR1: f64 = 1.0;
 const RR2: f64 = 2.0;
 const RRV: f64 = 1.0;
@@ -79,10 +79,13 @@ fn main() {
     let mut ys = vec![];
     let mut ts = vec![];
 
-    for i in 1..MAX_ITER {
+    for i in 0..MAX_ITER {
         let t = (i as f64) * DELTA_T;
         let dx = runge_kutta(&x, time_evol);
         x += dx;
+        if i % 10 == 0 {
+            println!("{}", &x);
+        }
         ts.push(t);
         xs.push(x[0]);
         ys.push(x[1]);
