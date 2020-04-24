@@ -1,7 +1,9 @@
 use gnuplot::{Caption, Color, Figure};
 extern crate nalgebra as na;
-use runge_kutta::auto_diff::Dual;
-use runge_kutta::nabla::Func3D;
+mod auto_diff;
+mod nabla;
+use auto_diff::Dual;
+use nabla::Func3D;
 
 // fox and rabbit
 // const A: f64 = 0.01;
